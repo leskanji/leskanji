@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau des caractères japonais</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 20px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            text-align: center;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        th.sortable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        th.sortable:hover {
+            background: #e9ecef;
+            color: #212529;
+        }
+        th.sortable::after {
+            content: '↕';
+            position: absolute;
+            right: 15px;
+            color: #adb5bd;
+            font-size: 0.8em;
+        }
+        th.sorted-asc::after {
+            content: '↑';
+            color: #4dabf7;
+        }
+        th.sorted-desc::after {
+            content: '↓';
+            color: #4dabf7;
+        }
+        .character-cell {
+            font-size: 3em;
+            text-align: center;
+            font-weight: bold;
+            color: #2b2d42;
+            font-family: 'Yu Gothic', 'Hiragino Sans', 'MS Mincho', sans-serif;
+            width: 100px;
+        }
+        .meaning {
+            font-size: 0.85em;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 8px;
+        }
+        .reading-block {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #4dabf7;
+        }
+        .reading-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #e63946;
+            margin-bottom: 10px;
+            font-family: 'Yu Gothic', 'Hiragino Sans', sans-serif;
+        }
+        .word-example {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .furigana {
+            font-size: 0.7em;
+            color: #e63946;
+            display: block;
+            margin-bottom: 3px;
+            font-weight: 500;
+        }
+        .word {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2b2d42;
+            margin-bottom: 5px;
+            font-family: 'Yu Gothic', 'Hiragino Sans', sans-serif;
+        }
+        .word-meaning {
+            font-size: 0.9em;
+            color: #495057;
+            font-style: italic;
+            margin-bottom: 10px;
+            padding-left: 10px;
+            border-left: 2px solid #dee2e6;
+        }
+        .example-sentence {
+            background: #e7f5ff;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+        .sentence-furigana {
+            font-size: 0.75em;
+            color: #1971c2;
+            margin-bottom: 4px;
+        }
+        .sentence-japanese {
+            font-size: 1.05em;
+            color: #1864ab;
+            margin-bottom: 6px;
+            font-family: 'Yu Gothic', 'Hiragino Sans', sans-serif;
+        }
+        .sentence-translation {
+            font-size: 0.9em;
+            color: #495057;
+            font-style: italic;
+            padding-left: 10px;
+            border-left: 3px solid #74c0fc;
+        }
+        .level-cell {
+            text-align: center;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1em;
+            width: 80px;
+        }
+        .level-N5 { background: #d8f3dc; color: #2d6a4f; }
+        .level-N4 { background: #b7e4c7; color: #1b4332; }
+        .level-N3 { background: #95d5b2; color: #081c15; }
+        .level-N2 { background: #74c69d; color: #052e16; }
+        .level-N1 { background: #52b788; color: #031d11; }
+        .notes {
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            font-size: 0.9em;
+            color: #856404;
+            font-style: italic;
+        }
+        .header-title {
+            background: linear-gradient(135deg, #4dabf7, #3a86ff);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header-title h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header-title p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        /* Style pour les liens de kanji */
+        .kanji-link {
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-block;
+            padding: 0 2px;
+        }
+        .kanji-link:hover {
+            color: #e63946;
+            transform: scale(1.1);
+            text-shadow: 0 2px 4px rgba(230, 57, 70, 0.3);
+        }
+        
+        /* Animation lors du scroll vers un kanji */
+        tr.highlight {
+            animation: highlightRow 2s ease;
+        }
+        @keyframes highlightRow {
+            0% { background-color: #fff3cd; }
+            100% { background-color: transparent; }
+        }
+        
+        /* Scroll smooth */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Offset pour le scroll (pour compenser l'en-tête) */
+        tr[id] {
+            scroll-margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-title">
+            <h1>Tableau des caractères japonais</h1>
+            <p>Apprenez les kanji avec leurs lectures, exemples de mots et phrases contextuelles</p>
+        </div>
+        
+        <table id="kanjiTable">
+            <thead>
+                <tr>
+                    <th>Caractère</th>
+                    <th class="sortable" onclick="sortTable(1)">Niveau</th>
+                    <th>Signification</th>
+                    <th>Lectures et exemples</th>
+                </tr>
+            </thead>
+            <tbody>
+				<!-- Kanji 亜 -->
+                <tr id="亜">
+                    <td class="character-cell">亜</td>
+                    <td class="level-cell level-N1">N1</td>
+                    <td>
+                        <div class="meaning">sub-, secondaire, suivant, Asie</div>
+                    </td>
+                    <td>
+                        <!-- Lecture 1 亜 -->
+                        <div class="reading-block">
+                            <div class="reading-title">ア</div>
+                            
+                            <div class="word-example">
+                                <span class="furigana">ありゅう</span>
+                                <div class="word">
+                                    <a href="#亜" class="kanji-link" onclick="highlightKanji('亜')">亜</a><a href="#流" class="kanji-link" onclick="highlightKanji('流')">流</a>
+                                </div>
+                                <div class="word-meaning">dérivé, imitation, école secondaire</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">かれのさくひんはあるめいがのありゅうだとひはんされた</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#彼" class="kanji-link" onclick="highlightKanji('彼')">彼</a>の<a href="#作" class="kanji-link" onclick="highlightKanji('作')">作</a><a href="#品" class="kanji-link" onclick="highlightKanji('品')">品</a>はある<a href="#名" class="kanji-link" onclick="highlightKanji('名')">名</a><a href="#画" class="kanji-link" onclick="highlightKanji('画')">画</a><a href="#家" class="kanji-link" onclick="highlightKanji('家')">家</a>の<a href="#亜" class="kanji-link" onclick="highlightKanji('亜')">亜</a><a href="#流" class="kanji-link" onclick="highlightKanji('流')">流</a>だと<a href="#批" class="kanji-link" onclick="highlightKanji('批')">批</a><a href="#判" class="kanji-link" onclick="highlightKanji('判')">判</a>された。
+                                    </div>
+                                    <div class="sentence-translation">Son œuvre a été critiquée comme étant une imitation d'un peintre célèbre.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">あま</span>
+                                <div class="word">
+                                    <a href="#亜" class="kanji-link" onclick="highlightKanji('亜')">亜</a><a href="#麻" class="kanji-link" onclick="highlightKanji('麻')">麻</a>
+                                </div>
+                                <div class="word-meaning">lin</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">あまのふくはなつにすずしくてきもちいい</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#亜" class="kanji-link" onclick="highlightKanji('亜')">亜</a><a href="#麻" class="kanji-link" onclick="highlightKanji('麻')">麻</a>の<a href="#服" class="kanji-link" onclick="highlightKanji('服')">服</a>は<a href="#夏" class="kanji-link" onclick="highlightKanji('夏')">夏</a>に<a href="#涼" class="kanji-link" onclick="highlightKanji('涼')">涼</a>しくて<a href="#気" class="kanji-link" onclick="highlightKanji('気')">気</a><a href="#持" class="kanji-link" onclick="highlightKanji('持')">持</a>ちいい。
+                                    </div>
+                                    <div class="sentence-translation">Les vêtements en lin sont frais et agréables en été.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">あねったい</span>
+                                <div class="word">
+                                    <a href="#亜" class="kanji-link" onclick="highlightKanji('亜')">亜</a><a href="#熱" class="kanji-link" onclick="highlightKanji('熱')">熱</a><a href="#帯" class="kanji-link" onclick="highlightKanji('帯')">帯</a>
+                                </div>
+                                <div class="word-meaning">zone subtropicale</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">おきなわはあねったいにぞくする</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#沖" class="kanji-link" onclick="highlightKanji('沖')">沖</a><a href="#縄" class="kanji-link" onclick="highlightKanji('縄')">縄</a>は<a href="#亜" class="kanji-link" onclick="highlightKanji('亜')">亜</a><a href="#熱" class="kanji-link" onclick="highlightKanji('熱')">熱</a><a href="#帯" class="kanji-link" onclick="highlightKanji('帯')">帯</a>に<a href="#属" class="kanji-link" onclick="highlightKanji('属')">属</a>する。
+                                    </div>
+                                    <div class="sentence-translation">Okinawa appartient à la zone subtropicale.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notes">
+                            <strong>📝 Note :</strong> Le kanji 亜 est souvent utilisé comme préfixe signifiant "sous-" ou "secondaire". Il est également utilisé dans アジア (Asie) et dans des termes scientifiques comme 亜硝酸 (nitrite).
+                        </div>
+                    </td>
+                </tr>
+				
+                <!-- Kanji 哀 -->
+                <tr id="哀">
+                    <td class="character-cell">哀</td>
+                    <td class="level-cell level-N1">N1</td>
+                    <td>
+                        <div class="meaning">tristesse, pitié, compassion, chagrin</div>
+                    </td>
+                    <td>
+                        <!-- Lecture 1 哀 -->
+                        <div class="reading-block">
+                            <div class="reading-title">アイ</div>
+                            
+                            <div class="word-example">
+                                <span class="furigana">あいしゅう</span>
+                                <div class="word">
+                                    <a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a><a href="#愁" class="kanji-link" onclick="highlightKanji('愁')">愁</a>
+                                </div>
+                                <div class="word-meaning">mélancolie, tristesse nostalgique</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">あきのゆうぐれにはふかいあいしゅうがただよう</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#秋" class="kanji-link" onclick="highlightKanji('秋')">秋</a>の<a href="#夕" class="kanji-link" onclick="highlightKanji('夕')">夕</a><a href="#暮" class="kanji-link" onclick="highlightKanji('暮')">暮</a>れには<a href="#深" class="kanji-link" onclick="highlightKanji('深')">深</a>い<a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a><a href="#愁" class="kanji-link" onclick="highlightKanji('愁')">愁</a>が<a href="#漂" class="kanji-link" onclick="highlightKanji('漂')">漂</a>う。
+                                    </div>
+                                    <div class="sentence-translation">Une profonde mélancolie flotte dans le crépuscule automnal.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">あいがん</span>
+                                <div class="word">
+                                    <a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a><a href="#願" class="kanji-link" onclick="highlightKanji('願')">願</a>
+                                </div>
+                                <div class="word-meaning">supplication, imploration</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">かれはゆるしをもとめてしっけんにあったいがんした</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#彼" class="kanji-link" onclick="highlightKanji('彼')">彼</a>は<a href="#許" class="kanji-link" onclick="highlightKanji('許')">許</a>しを<a href="#求" class="kanji-link" onclick="highlightKanji('求')">求</a>めて<a href="#失" class="kanji-link" onclick="highlightKanji('失')">失</a><a href="#権" class="kanji-link" onclick="highlightKanji('権')">権</a>に<a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a><a href="#願" class="kanji-link" onclick="highlightKanji('願')">願</a>した。
+                                    </div>
+                                    <div class="sentence-translation">Il implora le pardon à genoux.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">ひあい</span>
+                                <div class="word">
+                                    <a href="#悲" class="kanji-link" onclick="highlightKanji('悲')">悲</a><a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>
+                                </div>
+                                <div class="word-meaning">tristesse, chagrin, douleur</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">そのものがたりにはふかくてしぜんなひあいがつまっている</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#其" class="kanji-link" onclick="highlightKanji('其')">其</a>の<a href="#物" class="kanji-link" onclick="highlightKanji('物')">物</a><a href="#語" class="kanji-link" onclick="highlightKanji('語')">語</a>には<a href="#深" class="kanji-link" onclick="highlightKanji('深')">深</a>くて<a href="#自" class="kanji-link" onclick="highlightKanji('自')">自</a><a href="#然" class="kanji-link" onclick="highlightKanji('然')">然</a>な<a href="#悲" class="kanji-link" onclick="highlightKanji('悲')">悲</a><a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>が<a href="#詰" class="kanji-link" onclick="highlightKanji('詰')">詰</a>まっている。
+                                    </div>
+                                    <div class="sentence-translation">Cette histoire est remplie d'une tristesse profonde et naturelle.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lecture 2 哀 -->
+                        <div class="reading-block">
+                            <div class="reading-title">あわれ</div>
+                            
+                            <div class="word-example">
+                                <span class="furigana">あわれ</span>
+                                <div class="word">
+                                    <a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>れ
+                                </div>
+                                <div class="word-meaning">pitié, compassion, misère</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">よるのまちであわれなねこをみつけた</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#夜" class="kanji-link" onclick="highlightKanji('夜')">夜</a>の<a href="#街" class="kanji-link" onclick="highlightKanji('街')">街</a>で<a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>れな<a href="#猫" class="kanji-link" onclick="highlightKanji('猫')">猫</a>を<a href="#見" class="kanji-link" onclick="highlightKanji('見')">見</a>つけた。
+                                    </div>
+                                    <div class="sentence-translation">J'ai trouvé un chat pitoyable dans la rue la nuit.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">あわれなはなし</span>
+                                <div class="word">
+                                    <a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>れな<a href="#話" class="kanji-link" onclick="highlightKanji('話')">話</a>
+                                </div>
+                                <div class="word-meaning">histoire triste, récit poignant</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">おばあさんはせんそうのときのあわれなはなしをしてくれた</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#祖母" class="kanji-link" onclick="highlightKanji('祖母')">祖母</a>さんは<a href="#戦" class="kanji-link" onclick="highlightKanji('戦')">戦</a><a href="#争" class="kanji-link" onclick="highlightKanji('争')">争</a>のときの<a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>れな<a href="#話" class="kanji-link" onclick="highlightKanji('話')">話</a>をしてくれた。
+                                    </div>
+                                    <div class="sentence-translation">Ma grand-mère m'a raconté une histoire triste sur la période de la guerre.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">あわれがる</span>
+                                <div class="word">
+                                    <a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>れがる
+                                </div>
+                                <div class="word-meaning">compatir, avoir pitié de</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">みんなはそのみなしごをあわれがった</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#皆" class="kanji-link" onclick="highlightKanji('皆')">皆</a>はその<a href="#孤" class="kanji-link" onclick="highlightKanji('孤')">孤</a><a href="#児" class="kanji-link" onclick="highlightKanji('児')">児</a>を<a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>れがった。
+                                    </div>
+                                    <div class="sentence-translation">Tout le monde a eu pitié de cet orphelin.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lecture 3 哀 -->
+                        <div class="reading-block">
+                            <div class="reading-title">あわれむ</div>
+                            
+                            <div class="word-example">
+                                <span class="furigana">あわれむ</span>
+                                <div class="word">
+                                    <a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>れむ
+                                </div>
+                                <div class="word-meaning">compatir, plaindre, avoir pitié</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">かのじょはびょうにんをあわれみ、せわをつくした</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#彼" class="kanji-link" onclick="highlightKanji('彼')">彼</a><a href="#女" class="kanji-link" onclick="highlightKanji('女')">女</a>は<a href="#病" class="kanji-link" onclick="highlightKanji('病')">病</a><a href="#人" class="kanji-link" onclick="highlightKanji('人')">人</a>を<a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>れみ、<a href="#世" class="kanji-link" onclick="highlightKanji('世')">世</a><a href="#話" class="kanji-link" onclick="highlightKanji('話')">話</a>を<a href="#尽" class="kanji-link" onclick="highlightKanji('尽')">尽</a>くした。
+                                    </div>
+                                    <div class="sentence-translation">Elle a eu pitié du malade et lui a prodigué des soins.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">あわれみ</span>
+                                <div class="word">
+                                    <a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>れみ
+                                </div>
+                                <div class="word-meaning">pitié, compassion, miséricorde</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">しけんかんはなにひとつあわれみをみせなかった</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#試" class="kanji-link" onclick="highlightKanji('試')">試</a><a href="#験" class="kanji-link" onclick="highlightKanji('験')">験</a><a href="#官" class="kanji-link" onclick="highlightKanji('官')">官</a>はなにひとつ<a href="#哀" class="kanji-link" onclick="highlightKanji('哀')">哀</a>れみを<a href="#見" class="kanji-link" onclick="highlightKanji('見')">見</a>せなかった。
+                                    </div>
+                                    <div class="sentence-translation">L'examinateur n'a montré aucune pitié.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notes">
+                            <strong>📝 Note :</strong> Le kanji 哀 exprime des émotions profondes liées à la tristesse et la compassion. La lecture アイ est souvent utilisée dans des mots composés, tandis que あわれ et あわれむ sont des formes plus littéraires et émotionnelles. Ce kanji est fréquent dans la littérature classique et la poésie.
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Kanji 挨 -->
+                <tr id="挨">
+                    <td class="character-cell">挨</td>
+                    <td class="level-cell level-N1">N1</td>
+                    <td>
+                        <div class="meaning">salutation, approche, pousser</div>
+                    </td>
+                    <td>
+                        <!-- Lecture 1 挨 -->
+                        <div class="reading-block">
+                            <div class="reading-title">アイ</div>
+                            
+                            <div class="word-example">
+                                <span class="furigana">あいさつ</span>
+                                <div class="word">
+                                    <a href="#挨" class="kanji-link" onclick="highlightKanji('挨')">挨</a><a href="#拶" class="kanji-link" onclick="highlightKanji('拶')">拶</a>
+                                </div>
+                                <div class="word-meaning">salutation, compliments, formalités</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">かいしゃではあさのあいさつがたいせつです</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#会" class="kanji-link" onclick="highlightKanji('会')">会</a><a href="#社" class="kanji-link" onclick="highlightKanji('社')">社</a>では<a href="#朝" class="kanji-link" onclick="highlightKanji('朝')">朝</a>の<a href="#挨" class="kanji-link" onclick="highlightKanji('挨')">挨</a><a href="#拶" class="kanji-link" onclick="highlightKanji('拶')">拶</a>が<a href="#大" class="kanji-link" onclick="highlightKanji('大')">大</a><a href="#切" class="kanji-link" onclick="highlightKanji('切')">切</a>です。
+                                    </div>
+                                    <div class="sentence-translation">Dans l'entreprise, les salutations du matin sont importantes.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notes">
+                            <strong>📝 Note :</strong> Le kanji 挨 est presque exclusivement utilisé dans le mot 挨拶 (aisatsu). À l'origine, il signifiait "pousser" ou "approcher", mais dans l'usage moderne, il est principalement associé aux salutations et aux formules de politesse. C'est un élément essentiel de l'étiquette sociale japonaise.
+                        </div>
+                    </td>
+                </tr>
+                    
+				<!-- Kanji 愛 -->
+                <tr id="愛">
+                    <td class="character-cell">愛</td>
+                    <td class="level-cell level-N3">N3</td>
+                    <td>
+                        <div class="meaning">amour, affection, attachement</div>
+                    </td>
+                    <td>
+                        <!-- Lecture 1 愛 -->
+                        <div class="reading-block">
+                            <div class="reading-title">アイ</div>
+                            
+                            <div class="word-example">
+                                <span class="furigana">あいじょう</span>
+                                <div class="word">
+                                    <a href="#愛" class="kanji-link" onclick="highlightKanji('愛')">愛</a><a href="#情" class="kanji-link" onclick="highlightKanji('情')">情</a>
+                                </div>
+                                <div class="word-meaning">affection, amour, attachement</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">りょうしんへのあいじょうをつたえる</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#両" class="kanji-link" onclick="highlightKanji('両')">両</a><a href="#親" class="kanji-link" onclick="highlightKanji('親')">親</a>への<a href="#愛" class="kanji-link" onclick="highlightKanji('愛')">愛</a><a href="#情" class="kanji-link" onclick="highlightKanji('情')">情</a>を<a href="#伝" class="kanji-link" onclick="highlightKanji('伝')">伝</a>える。
+                                    </div>
+                                    <div class="sentence-translation">Exprimer son affection envers ses parents.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">あいどく</span>
+                                <div class="word">
+                                    <a href="#愛" class="kanji-link" onclick="highlightKanji('愛')">愛</a><a href="#読" class="kanji-link" onclick="highlightKanji('読')">読</a>
+                                </div>
+                                <div class="word-meaning">lecture favorite, livre préféré</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">このしょせきはわたしのあいどくしょです</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#此" class="kanji-link" onclick="highlightKanji('此')">此</a>の<a href="#書" class="kanji-link" onclick="highlightKanji('書')">書</a><a href="#籍" class="kanji-link" onclick="highlightKanji('籍')">籍</a>は<a href="#私" class="kanji-link" onclick="highlightKanji('私')">私</a>の<a href="#愛" class="kanji-link" onclick="highlightKanji('愛')">愛</a><a href="#読" class="kanji-link" onclick="highlightKanji('読')">読</a><a href="#書" class="kanji-link" onclick="highlightKanji('書')">書</a>です。
+                                    </div>
+                                    <div class="sentence-translation">Ce livre est ma lecture favorite.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">れんあい</span>
+                                <div class="word">
+                                    <a href="#恋" class="kanji-link" onclick="highlightKanji('恋')">恋</a><a href="#愛" class="kanji-link" onclick="highlightKanji('愛')">愛</a>
+                                </div>
+                                <div class="word-meaning">amour romantique, relation amoureuse</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">かれらはれんあいけいやくをむすんだ</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#彼" class="kanji-link" onclick="highlightKanji('彼')">彼</a>らは<a href="#恋" class="kanji-link" onclick="highlightKanji('恋')">恋</a><a href="#愛" class="kanji-link" onclick="highlightKanji('愛')">愛</a><a href="#契" class="kanji-link" onclick="highlightKanji('契')">契</a><a href="#約" class="kanji-link" onclick="highlightKanji('約')">約</a>を<a href="#結" class="kanji-link" onclick="highlightKanji('結')">結</a>んだ。
+                                    </div>
+                                    <div class="sentence-translation">Ils ont conclu un pacte d'amour.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notes">
+                            <strong>📝 Note :</strong> Le kanji 愛 est l'un des kanji les plus positifs et universels, représentant toutes les formes d'amour - familial, romantique, amical, ou passionnel. Il est utilisé dans de nombreux mots composés et est essentiel pour exprimer des sentiments affectueux en japonais.
+                        </div>
+                    </td>
+                </tr>
+            
+				<!-- Kanji 曖 -->
+                <tr id="曖">
+                    <td class="character-cell">曖</td>
+                    <td class="level-cell level-N1">N1</td>
+                    <td>
+                        <div class="meaning">vague, obscur, ambigu, incertain</div>
+                    </td>
+                    <td>
+                        <!-- Lecture 1 曖 -->
+                        <div class="reading-block">
+                            <div class="reading-title">アイ</div>
+                            
+                            <div class="word-example">
+                                <span class="furigana">あいまい</span>
+                                <div class="word">
+                                    <a href="#曖" class="kanji-link" onclick="highlightKanji('曖')">曖</a><a href="#昧" class="kanji-link" onclick="highlightKanji('昧')">昧</a>
+                                </div>
+                                <div class="word-meaning">vague, ambigu, imprécis</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">かれのへんじはあいまいでほんとうのいきもちがわからない</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#彼" class="kanji-link" onclick="highlightKanji('彼')">彼</a>の<a href="#返" class="kanji-link" onclick="highlightKanji('返')">返</a><a href="#事" class="kanji-link" onclick="highlightKanji('事')">事</a>は<a href="#曖" class="kanji-link" onclick="highlightKanji('曖')">曖</a><a href="#昧" class="kanji-link" onclick="highlightKanji('昧')">昧</a>で<a href="#本" class="kanji-link" onclick="highlightKanji('本')">本</a><a href="#当" class="kanji-link" onclick="highlightKanji('当')">当</a>の<a href="#意" class="kanji-link" onclick="highlightKanji('意')">意</a><a href="#気" class="kanji-link" onclick="highlightKanji('気')">気</a><a href="#持" class="kanji-link" onclick="highlightKanji('持')">持</a>が<a href="#分" class="kanji-link" onclick="highlightKanji('分')">分</a>からない。
+                                    </div>
+                                    <div class="sentence-translation">Sa réponse est vague et je ne comprends pas ses véritables intentions.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notes">
+                            <strong>📝 Note :</strong> Le kanji 曖 est presque exclusivement utilisé dans le mot 曖昧 (aimai). Il exprime le manque de clarté, l'ambiguïté ou l'imprécision. Dans la culture japonaise où la communication directe est parfois évitée, ce terme est important pour décrire des réponses ou des situations non claires.
+                        </div>
+                    </td>
+                </tr>
+			
+				<!-- Kanji 悪 -->
+                <tr id="悪">
+                    <td class="character-cell">悪</td>
+                    <td class="level-cell level-N4">N4</td>
+                    <td>
+                        <div class="meaning">mauvais, mal, méchant, vice</div>
+                    </td>
+                    <td>
+                        <!-- Lecture 1 悪 -->
+                        <div class="reading-block">
+                            <div class="reading-title">アク</div>
+                            
+                            <div class="word-example">
+                                <span class="furigana">あくじ</span>
+                                <div class="word">
+                                    <a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a><a href="#事" class="kanji-link" onclick="highlightKanji('事')">事</a>
+                                </div>
+                                <div class="word-meaning">mauvaise action, méfait, crime</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">あくじはつねにはれないとはかぎらない</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a><a href="#事" class="kanji-link" onclick="highlightKanji('事')">事</a>は<a href="#常" class="kanji-link" onclick="highlightKanji('常')">常</a>に<a href="#晴" class="kanji-link" onclick="highlightKanji('晴')">晴</a>れないとは<a href="#限" class="kanji-link" onclick="highlightKanji('限')">限</a>らない。
+                                    </div>
+                                    <div class="sentence-translation">Les mauvaises actions ne restent pas toujours cachées.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">あくい</span>
+                                <div class="word">
+                                    <a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a><a href="#意" class="kanji-link" onclick="highlightKanji('意')">意</a>
+                                </div>
+                                <div class="word-meaning">mauvaise intention, malveillance</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">あくいのあることばをつかわないでください</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a><a href="#意" class="kanji-link" onclick="highlightKanji('意')">意</a>のある<a href="#言" class="kanji-link" onclick="highlightKanji('言')">言</a><a href="#葉" class="kanji-link" onclick="highlightKanji('葉')">葉</a>を<a href="#使" class="kanji-link" onclick="highlightKanji('使')">使</a>わないでください。
+                                    </div>
+                                    <div class="sentence-translation">Ne utilisez pas de mots malveillants.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">しゅうあく</span>
+                                <div class="word">
+                                    <a href="#醜" class="kanji-link" onclick="highlightKanji('醜')">醜</a><a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a>
+                                </div>
+                                <div class="word-meaning">laideur, hideur, difformité</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">そのけしきはしぜんのしゅうあくをあらわしていた</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#其" class="kanji-link" onclick="highlightKanji('其')">其</a>の<a href="#景" class="kanji-link" onclick="highlightKanji('景')">景</a><a href="#色" class="kanji-link" onclick="highlightKanji('色')">色</a>は<a href="#自" class="kanji-link" onclick="highlightKanji('自')">自</a><a href="#然" class="kanji-link" onclick="highlightKanji('然')">然</a>の<a href="#醜" class="kanji-link" onclick="highlightKanji('醜')">醜</a><a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a>を<a href="#表" class="kanji-link" onclick="highlightKanji('表')">表</a>していた。
+                                    </div>
+                                    <div class="sentence-translation">Ce paysage révélait la laideur de la nature.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lecture 2 悪 -->
+                        <div class="reading-block">
+                            <div class="reading-title">オ</div>
+                            
+                            <div class="word-example">
+                                <span class="furigana">おかん</span>
+                                <div class="word">
+                                    <a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a><a href="#寒" class="kanji-link" onclick="highlightKanji('寒')">寒</a>
+                                </div>
+                                <div class="word-meaning">frissons, sensation de froid (symptôme)</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">かぜのひきはじめにおかんがすることがある</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#風" class="kanji-link" onclick="highlightKanji('風')">風</a>の<a href="#引" class="kanji-link" onclick="highlightKanji('引')">引</a>き<a href="#初" class="kanji-link" onclick="highlightKanji('初')">初</a>めに<a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a><a href="#寒" class="kanji-link" onclick="highlightKanji('寒')">寒</a>がすることがある。
+                                    </div>
+                                    <div class="sentence-translation">On peut avoir des frissons au début d'un rhume.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">こうお</span>
+                                <div class="word">
+                                    <a href="#好" class="kanji-link" onclick="highlightKanji('好')">好</a><a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a>
+                                </div>
+                                <div class="word-meaning">préférences, goûts et dégoûts</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">たべもののこうおはひとそれぞれだ</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#食" class="kanji-link" onclick="highlightKanji('食')">食</a><a href="#べ" class="kanji-link" onclick="highlightKanji('べ')">べ</a><a href="#物" class="kanji-link" onclick="highlightKanji('物')">物</a>の<a href="#好" class="kanji-link" onclick="highlightKanji('好')">好</a><a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a>は<a href="#人" class="kanji-link" onclick="highlightKanji('人')">人</a>それぞれだ。
+                                    </div>
+                                    <div class="sentence-translation">Les préférences alimentaires varient selon les personnes.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">ぞうお</span>
+                                <div class="word">
+                                    <a href="#憎" class="kanji-link" onclick="highlightKanji('憎')">憎</a><a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a>
+                                </div>
+                                <div class="word-meaning">haine, aversion, détestation</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">うそつきへのぞうおをおぼえる</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#嘘" class="kanji-link" onclick="highlightKanji('嘘')">嘘</a>つきへの<a href="#憎" class="kanji-link" onclick="highlightKanji('憎')">憎</a><a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a>を<a href="#覚" class="kanji-link" onclick="highlightKanji('覚')">覚</a>える。
+                                    </div>
+                                    <div class="sentence-translation">Ressentir de la haine envers les menteurs.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lecture 3 悪 -->
+                        <div class="reading-block">
+                            <div class="reading-title">わるい</div>
+                            
+                            <div class="word-example">
+                                <span class="furigana">わるい</span>
+                                <div class="word">
+                                    <a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a>い
+                                </div>
+                                <div class="word-meaning">mauvais, méchant, incorrect</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">わるいことをしたらあやまりなさい</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a>いことをしたら<a href="#謝" class="kanji-link" onclick="highlightKanji('謝')">謝</a>りなさい。
+                                    </div>
+                                    <div class="sentence-translation">Si tu as fait quelque chose de mal, excuse-toi.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">わるさ</span>
+                                <div class="word">
+                                    <a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a>さ
+                                </div>
+                                <div class="word-meaning">méchanceté, espièglerie, bêtises</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">こどものわるさにはめをはなせない</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#子" class="kanji-link" onclick="highlightKanji('子')">子</a><a href="#供" class="kanji-link" onclick="highlightKanji('供')">供</a>の<a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a>さには<a href="#目" class="kanji-link" onclick="highlightKanji('目')">目</a>を<a href="#離" class="kanji-link" onclick="highlightKanji('離')">離</a>せない。
+                                    </div>
+                                    <div class="sentence-translation">On ne peut pas quitter des yeux les bêtises des enfants.</div>
+                                </div>
+                            </div>
+
+                            <div class="word-example">
+                                <span class="furigana">わるもの</span>
+                                <div class="word">
+                                    <a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a><a href="#者" class="kanji-link" onclick="highlightKanji('者')">者</a>
+                                </div>
+                                <div class="word-meaning">méchant, vilain, malfaiteur</div>
+                                
+                                <div class="example-sentence">
+                                    <div class="sentence-furigana">えいがではわるものがたいていばつをうける</div>
+                                    <div class="sentence-japanese">
+                                        <a href="#映" class="kanji-link" onclick="highlightKanji('映')">映</a><a href="#画" class="kanji-link" onclick="highlightKanji('画')">画</a>では<a href="#悪" class="kanji-link" onclick="highlightKanji('悪')">悪</a><a href="#者" class="kanji-link" onclick="highlightKanji('者')">者</a>がたいてい<a href="#罰" class="kanji-link" onclick="highlightKanji('罰')">罰</a>を<a href="#受" class="kanji-link" onclick="highlightKanji('受')">受</a>ける。
+                                    </div>
+                                    <div class="sentence-translation">Dans les films, les méchants sont généralement punis.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notes">
+                            <strong>📝 Note :</strong> Le kanji 悪 est fondamental et exprime la notion de mal sous toutes ses formes. La lecture アク est la plus courante dans les mots composés, オ apparaît dans certains termes spécifiques, et わるい est la forme adjective courante. C'est l'antonyme direct de 善 (bien).
+                        </div>
+                    </td>
+                </tr>
+			</tbody>
+        </table>
+
+        <script>
+            let sortDirection = 1;
+            let lastSortedColumn = -1;
+
+            function sortTable(columnIndex) {
+                const table = document.getElementById('kanjiTable');
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const header = table.querySelectorAll('th')[columnIndex];
+
+                // Réinitialiser les autres en-têtes
+                table.querySelectorAll('th').forEach(h => {
+                    if (h !== header) {
+                        h.classList.remove('sorted-asc', 'sorted-desc');
+                    }
+                });
+
+                // Changer la direction si on clique sur la même colonne
+                if (lastSortedColumn === columnIndex) {
+                    sortDirection = -sortDirection;
+                } else {
+                    sortDirection = 1;
+                    lastSortedColumn = columnIndex;
+                }
+
+                // Mettre à jour l'indicateur de tri
+                header.classList.remove('sorted-asc', 'sorted-desc');
+                header.classList.add(sortDirection === 1 ? 'sorted-asc' : 'sorted-desc');
+
+                rows.sort((a, b) => {
+                    const aCell = a.cells[columnIndex];
+                    const bCell = b.cells[columnIndex];
+                    
+                    let aValue = aCell.textContent.trim();
+                    let bValue = bCell.textContent.trim();
+
+                    // Trier par niveau (N5 à N1)
+                    aValue = aValue.replace('N', '');
+                    bValue = bValue.replace('N', '');
+                    return (parseInt(aValue) - parseInt(bValue)) * sortDirection;
+                });
+
+                // Réorganiser les lignes
+                rows.forEach(row => tbody.appendChild(row));
+            }
+
+            // Fonction pour surligner la ligne du kanji ciblé
+            function highlightKanji(kanjiChar) {
+                // Supprimer les anciens surlignages
+                document.querySelectorAll('tr.highlight').forEach(row => {
+                    row.classList.remove('highlight');
+                });
+                
+                // Ajouter le surlignage à la nouvelle ligne
+                const targetRow = document.getElementById(kanjiChar);
+                if (targetRow) {
+                    setTimeout(() => {
+                        targetRow.classList.add('highlight');
+                    }, 100);
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>
